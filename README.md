@@ -102,8 +102,8 @@ print(*value_ref);  // prints 42
 
 // Mutable references to mutable data
 string @buffer = "hello";
-string& @buffer_ref = &@buffer;  // mutable reference variable to mutable buffer
-*@buffer_ref = "world";          // modifies original buffer
+string& @buffer_ref = &buffer;  // mutable reference variable to mutable buffer
+*buffer_ref = "world";           // modifies original buffer
 
 // Function parameters
 void processData(arrayList<i32>& data) {
@@ -112,8 +112,7 @@ void processData(arrayList<i32>& data) {
 }
 
 void modifyData(arrayList<i32>& @data) {
-    // @data is a mutable reference variable - can modify the original
-    *@data.push(42);
+    data.push(42);
 }
 ```
 
@@ -135,8 +134,8 @@ void logMessage(string message) {
 }
 
 string processData(string& input, i32 @processed_count) {
-    @processed_count = @processed_count + 1;
-    (*input).trimWhitespace().toLowerCase()
+    processed_count = processed_count + 1;
+    input.trimWhitespace().toLowerCase()
 }
 ```
 
@@ -310,12 +309,12 @@ print(*ref1 + *ref2);  // OK
 
 // Valid: one mutable reference
 arrayList<i32> @numbers = [1, 2, 3];
-@mut_ref = &@numbers;  // mutable reference to mutable data
+@mut_ref = &numbers;  // mutable reference to mutable data
 *mut_ref.push(4);      // OK
 
 // Invalid: cannot have both immutable and mutable refs
 i32 @counter = 0;
-i32& immut_ref = &@counter;
+i32& immut_ref = &counter;
 @mut_ref2 = &@counter;  // Compile error!
 
 // Automatic dereferencing for convenience
