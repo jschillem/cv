@@ -1,4 +1,10 @@
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Clone)]
+pub enum NumberLiteral {
+    Integer(i64),
+    Float(f64),
+}
+
+#[derive(Debug, PartialEq, Clone)]
 pub enum TokenKind {
     // Keywords:
     Break,  // break
@@ -18,24 +24,29 @@ pub enum TokenKind {
     When,   // when
 
     // Syntax:
-    Colon,        // :
-    Scope,        // ::
-    RightArrow,   // ->
-    Dot,          // .
-    DoubleDot,    // ..
-    Comma,        // ,
-    Ampersand,    // &
-    Star,         // *
-    Semicolon,    // ;
-    Pipe,         // |
-    LeftBrace,    // {
-    RightBrace,   // }
-    LeftBracket,  // [
-    RightBracket, // ]
-    LeftParen,    // (
-    RightParen,   // )
-    LessThan,     // <
-    GreaterThan,  // >
+    Mut,            // @
+    Colon,          // :
+    Scope,          // ::
+    Semicolon,      // ;
+    RightArrow,     // ->
+    Dot,            // .
+    Range,          // ..
+    RangeInclusive, // ..=
+    Comma,          // ,
+    Ampersand,      // &
+    Star,           // *
+    Pipe,           // |
+    LeftBrace,      // {
+    RightBrace,     // }
+    LeftBracket,    // [
+    RightBracket,   // ]
+    LeftParen,      // (
+    RightParen,     // )
+    LessThan,       // <
+    GreaterThan,    // >
+    SingleQuote,    // '
+    DoubleQuote,    // "
+    Newline,        // Newline character
 
     // Operators:
     And,          // and
@@ -58,7 +69,9 @@ pub enum TokenKind {
 
     // Identifiers and literals:
     Identifier(String), // e.g., variable, function, and type names
-    Number(String),     // e.g., 123, 45.67 (will be parsed later into actual numbers)
+    Number(NumberLiteral), // e.g., 123, 45.67
+
+                        // Other:
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
@@ -67,8 +80,25 @@ pub struct Span {
     pub end: usize,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Token {
     pub kind: TokenKind,
     pub position: Span,
+}
+
+impl Token {
+    /// Create a new token with the given kind, start position, and length.
+    pub fn new(kind: TokenKind, start: usize, len: usize) -> Self {
+        Self {
+            kind,
+            position: Span {
+                start,
+                end: start + len - 1,
+            },
+        }
+    }
+
+    pub fn is_single_char_token(&self) -> bool {
+        self.position.start == self.position.end
+    }
 }

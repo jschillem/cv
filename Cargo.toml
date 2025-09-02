@@ -7,4 +7,9 @@ edition = "2024"
 resolver = "3"
 members = ["lexer"]
 
+[workspace.dependencies]
+test-case = "3.3"
+thiserror = "2.0"
+
+
 [dependencies]
