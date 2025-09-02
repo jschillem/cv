@@ -1,19 +1,24 @@
+//! The lexer for the CV programming language.
+//!
+//! This module provides functionality to tokenize CV source code into a series of tokens.
+
 #![allow(dead_code)]
 
 use crate::tokens::{NumberLiteral, Token, TokenKind};
 use thiserror::Error;
 
-mod tokens;
+pub mod tokens;
 
 #[derive(Debug)]
 struct Lexer<'a> {
     content: &'a str,
     position: usize,
+    error_state: Option<LexerError>,
 }
 
 type Result<T> = std::result::Result<T, LexerError>;
 
-#[derive(Debug, Error, PartialEq)]
+#[derive(Debug, Error, PartialEq, Clone, Copy)]
 enum LexerError {
     #[error("Unexpected character '{0}' at position {1}")]
     UnexpectedCharacter(char, usize),
@@ -27,6 +32,7 @@ impl<'a> Lexer<'a> {
         Self {
             content,
             position: 0,
+            error_state: None,
         }
     }
 
@@ -253,6 +259,34 @@ impl<'a> Lexer<'a> {
             return Ok(None);
         }
     }
+
+    pub fn error(&self) -> Option<&LexerError> {
+        self.error_state.as_ref()
+    }
+
+    pub fn tokenize(mut self) -> Result<Vec<Token>> {
+        let mut tokens = Vec::new();
+        for token_result in self.by_ref() {
+            tokens.push(token_result?);
+        }
+
+        Ok(tokens)
+    }
+}
+
+impl<'a> Iterator for Lexer<'a> {
+    type Item = Result<Token>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.next_token() {
+            Ok(Some(token)) => Some(Ok(token)),
+            Ok(None) => None,
+            Err(e) => {
+                self.error_state = Some(e.clone());
+                Some(Err(e))
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -462,5 +496,25 @@ mod tests {
         expect_token(&mut lexer, TokenKind::Number(NumberLiteral::Integer(22)));
         expect_token(&mut lexer, TokenKind::Semicolon);
         expect_eof(&mut lexer);
+    }
+
+    #[test]
+    fn test_iterator_trait() {
+        let code = "x = 10 + 20;";
+        let lexer = Lexer::new(code);
+        let tokens: Vec<Token> = lexer.map(|res| res.expect("Lexer error")).collect();
+
+        let expected_kinds = vec![
+            TokenKind::Identifier("x".to_string()),
+            TokenKind::Equal,
+            TokenKind::Number(NumberLiteral::Integer(10)),
+            TokenKind::Plus,
+            TokenKind::Number(NumberLiteral::Integer(20)),
+            TokenKind::Semicolon,
+        ];
+
+        for (token, expected_kind) in tokens.iter().zip(expected_kinds.iter()) {
+            assert_eq!(&token.kind, expected_kind);
+        }
     }
 }
