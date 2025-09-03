@@ -5,7 +5,7 @@ edition = "2024"
 
 [workspace]
 resolver = "3"
-members = ["lexer"]
+members = ["lexer", "parser"]
 
 [workspace.dependencies]
 test-case = "3.3"
